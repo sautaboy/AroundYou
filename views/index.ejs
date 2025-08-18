@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Chat App | Connect Locally</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-dark: #3a56d4;
+            --text-primary: #2b3445;
+            --text-secondary: #5f6d7e;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --border-color: #e0e3e7;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .app-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .app-logo {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .app-tagline {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 1rem;
+        }
+
+        .app-description {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-left: 3px solid var(--primary-color);
+            padding: 12px 16px;
+            margin-bottom: 32px;
+            text-align: left;
+            font-size: 0.875rem;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .auth-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .login-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .login-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .signup-btn {
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .signup-btn:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .auth-form {
+            display: none;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-title {
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            background-color: white;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .form-footer {
+            margin-top: 16px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .form-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .hours-info {
+            margin-top: 32px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .hours-info svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .app-card {
+                padding: 24px;
+            }
+            
+            .auth-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-card">
+            <div class="app-logo">Location Chat</div>
+            <div class="app-tagline">Connect with people nearby</div>
+            
+            <div class="app-description">
+                Chat in real-time with other users within 100 meters of your location. Our service is available daily from 9:00 AM to 10:00 PM.
+            </div>
+            
+            <div class="auth-buttons">
+                <button class="auth-button login-btn" onclick="showForm('loginForm')">Login</button>
+                <button class="auth-button signup-btn" onclick="showForm('signupForm')">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <h3 class="form-title">Login to Your Account</h3>
+                <form action="/login" method="POST">
+                    <div class="form-group">
+                        <label for="loginEmail" class="form-label">Email Address</label>
+                        <input type="email" id="loginEmail" name="email" class="form-input" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <input type="password" id="loginPassword" name="password" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Continue</button>
+                </form>
+                <div class="form-footer">
+                    Don't have an account? <a href="#" onclick="showForm('signupForm')">Sign up</a>
+                </div>
+            </div>
+            
+            <!-- Signup Form -->
+            <div id="signupForm" class="auth-form">
+                <h3 class="form-title">Create New Account</h3>
+                <form action="/signup" method="POST">
+                    <div class="form-group">
+                        <label for="signupUsername" class="form-label">Username</label>
+                        <input type="text" id="signupUsername" name="username" class="form-input" placeholder="Choose a username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail" class="form-label">Email Address</label>
+                        <input type="email" id="signupEmail" name="email" class="form-input" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword" class="form-label">Password</label>
+                        <input type="password" id="signupPassword" name="password" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupGender" class="form-label">Gender</label>
+                        <select id="signupGender" name="gender" class="form-select" required>
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer-not-to-say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn">Create Account</button>
+                </form>
+                <div class="form-footer">
+                    Already have an account? <a href="#" onclick="showForm('loginForm')">Log in</a>
+                </div>
+            </div>
+            
+            <div class="hours-info">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Available 9:00 AM - 10:00 PM daily</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showForm(formId) {
+            // Hide all forms first
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.style.display = 'none';
+            });
+            
+            // Show the selected form
+            document.getElementById(formId).style.display = 'block';
+            
+            // Scroll to the form
+            document.getElementById(formId).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Close forms when clicking outside
+        document.addEventListener('click', function(event) {
+            const forms = document.querySelectorAll('.auth-form');
+            const buttons = document.querySelectorAll('.auth-button');
+            let isClickInsideForm = false;
+            
+            forms.forEach(form => {
+                if (form.contains(event.target)) {
+                    isClickInsideForm = true;
+                }
+            });
+            
+            buttons.forEach(button => {
+                if (button.contains(event.target)) {
+                    isClickInsideForm = true;
+                }
+            });
+            
+            if (!isClickInsideForm) {
+                forms.forEach(form => {
+                    form.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
