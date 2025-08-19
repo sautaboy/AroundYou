@@ -1,113 +1,236 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-const Message = require('../models/Message');
+const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
+const User = require("../models/User");
+const Message = require("../models/Message");
 
-// Helper: check chat open hours (6 AM to 2:59 AM next day)
-function isChatOpen() {
-    const hour = new Date().getHours();
-    // Open from 6:00 (6) to 2:59 (2) next day
-    return (hour >= 6 && hour < 24) || (hour >= 0 && hour < 3);
-}
+// Store OTPs temporarily (use Redis/DB in production)
+let otpStore = {};
 
-// Helper: delete all messages (called after chat closes)
-async function deleteAllMessages() {
-    await Message.deleteMany({});
-}
+// Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
-// Schedule message deletion at 3:00 AM server time
-function scheduleMessageDeletion() {
-    const now = new Date();
-    const next3am = new Date(now);
-    next3am.setHours(3, 0, 0, 0);
-    if (now >= next3am) {
-        // If past 3am today, schedule for tomorrow
-        next3am.setDate(next3am.getDate() + 1);
+/* ================== SIGNUP with OTP ================== */
+
+// Step 1: Send OTP
+router.post("/send-otp", async (req, res) => {
+  try {
+    const { username, email, password, gender } = req.body;
+
+    // Basic field check
+    if (!username || !email || !password || !gender) {
+      return res.json({ success: false, message: "All fields are required" });
     }
-    const msUntil3am = next3am - now;
-    setTimeout(async () => {
-        await deleteAllMessages();
-        scheduleMessageDeletion(); // Reschedule for next day
-    }, msUntil3am);
+
+    // Username validation: only one word, letters+numbers (no special chars),
+    // cannot start with number, at least 2 chars
+    const usernameRegex = /^[A-Za-z][A-Za-z0-9_]{1,}$/;
+    if (!usernameRegex.test(username)) {
+      return res.json({
+        success: false,
+        message:
+          "Username must be one word, start with a letter, only letters/numbers, min 2 chars",
+      });
+    }
+
+    // Email validation (strong)
+    const emailRegex =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return res.json({
+        success: false,
+        message: "Invalid email format",
+      });
+    }
+
+    // Password validation: at least 8 chars, includes letter, number, special char
+    const passwordRegex =
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.json({
+        success: false,
+        message:
+          "Password must include at least 8 chars, one letter, one number, one special char",
+      });
+    }
+
+    // Check if user exists
+    const existing = await User.findOne({ $or: [{ email }, { username }] });
+    if (existing) {
+      return res.json({
+        success: false,
+        message: "Email or username already exists",
+      });
+    }
+
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store temporarily
+    otpStore[email] = {
+      otp,
+      username,
+      email,
+      password: await bcrypt.hash(password, 10),
+      gender,
+      expires: Date.now() + 5 * 60 * 1000, // 5 mins
+    };
+
+    // Send OTP via Gmail
+    await transporter.sendMail({
+      from: `"Location Chat" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Verify your Email - OTP Code",
+      html: `<p>Your OTP is: <b>${otp}</b></p>`,
+    });
+
+    return res.json({
+      success: true,
+      message: "OTP sent to your email. Please verify.",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false, message: "Error sending OTP" });
+  }
+});
+
+// Step 2: Verify OTP & create account
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const record = otpStore[email];
+
+    if (!record) {
+      return res.json({ success: false, message: "No OTP request found" });
+    }
+    if (Date.now() > record.expires) {
+      return res.json({ success: false, message: "OTP expired" });
+    }
+    if (record.otp !== otp) {
+      return res.json({ success: false, message: "Invalid OTP" });
+    }
+
+    // Create user
+    await User.create({
+      username: record.username,
+      email: record.email,
+      password: record.password,
+      gender: record.gender,
+    });
+
+    // Clean up
+    delete otpStore[email];
+
+    return res.json({ success: true, message: "Signup successful!" });
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false, message: "Error verifying OTP" });
+  }
+});
+
+/* ================== LOGIN ================== */
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.json({ success: false, message: "All fields are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ success: false, message: "Invalid email" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.json({ success: false, message: "Invalid password" });
+    }
+
+    req.session.userId = user._id;
+    req.session.username = user.username;
+
+    return res.json({ success: true, message: "Login successful" });
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false, message: "Login error, try again" });
+  }
+});
+
+router.get("/logout", (req, res) => {
+  req.session.destroy();
+  res.redirect("/");
+});
+
+/* ================== Chat Utils ================== */
+
+function isChatOpen() {
+  const hour = new Date().getHours();
+  return (hour >= 6 && hour < 24) || (hour >= 0 && hour < 3);
+}
+
+async function deleteAllMessages() {
+  await Message.deleteMany({});
+}
+
+function scheduleMessageDeletion() {
+  const now = new Date();
+  const next3am = new Date(now);
+  next3am.setHours(3, 0, 0, 0);
+  if (now >= next3am) next3am.setDate(next3am.getDate() + 1);
+  const msUntil3am = next3am - now;
+
+  setTimeout(async () => {
+    await deleteAllMessages();
+    scheduleMessageDeletion();
+  }, msUntil3am);
 }
 scheduleMessageDeletion();
 
-// Index page
-router.get('/', (req, res) => res.render('index'));
+/* ================== ROUTES ================== */
 
-// Signup
-router.post('/signup', async (req, res) => {
-    const { username, email, password, gender } = req.body;
-    if (!username || !email || !password || !gender) return res.send('All fields required');
-    if (password.length < 8) return res.send('Password must be at least 8 characters');
+router.get("/", (req, res) => res.render("index"));
 
-    const existing = await User.findOne({ $or: [{ email }, { username }] });
-    if (existing) return res.send('Email or username exists');
-
-    const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, email, password: hashed, gender });
-    req.session.userId = user._id;
-    req.session.username = user.username;
-    res.redirect('/chat');
+router.post("/update-location", async (req, res) => {
+  if (!req.session.userId) return res.status(401).send("Unauthorized");
+  const { latitude, longitude } = req.body;
+  await User.findByIdAndUpdate(req.session.userId, {
+    location: { type: "Point", coordinates: [longitude, latitude] },
+  });
+  res.sendStatus(200);
 });
 
-// Login
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    console.log(user); // check if user exists
-    if (!user) return res.send('Invalid email');
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.send('Invalid password');
-
-    req.session.userId = user._id;
-    req.session.username = user.username;
-    console.log('Session ID:', req.session.userId); // confirm session is set
-    res.redirect('/chat');
+router.get("/chat", async (req, res) => {
+  if (!req.session.userId) return res.redirect("/");
+  const currentUser = await User.findById(req.session.userId);
+  res.render("chat", { currentUser, chatOpen: isChatOpen() });
 });
 
-// Logout
-router.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
-});
-
-// Update user location
-router.post('/update-location', async (req, res) => {
-    if (!req.session.userId) return res.status(401).send('Unauthorized');
-    const { latitude, longitude } = req.body;
-    await User.findByIdAndUpdate(req.session.userId, {
-        location: { type: 'Point', coordinates: [longitude, latitude] }
-    });
-    res.sendStatus(200);
-});
-
-// Chat page
-router.get('/chat', async (req, res) => {
-    console.log('Session:', req.session.userId);
-    if (!req.session.userId) return res.redirect('/');
-    const currentUser = await User.findById(req.session.userId);
-    res.render('chat', { currentUser, chatOpen: isChatOpen() });
-});
-
-// Fetch past nearby messages (optional)
-router.get('/chat/message/all', async (req, res) => {
-    if (!req.session.userId) return res.status(401).send('Unauthorized');
-    const currentUser = await User.findById(req.session.userId);
-    const nearbyUsers = await User.find({
-        location: {
-            $near: {
-                $geometry: { type: 'Point', coordinates: currentUser.location.coordinates },
-                $maxDistance: 100
-            }
-        }
-    });
-    const messages = await Message.find({ userId: { $in: nearbyUsers.map(u => u._id) } })
-                                  .sort({ createdAt: 1 });
-    res.json(messages);
+router.get("/chat/message/all", async (req, res) => {
+  if (!req.session.userId) return res.status(401).send("Unauthorized");
+  const currentUser = await User.findById(req.session.userId);
+  const nearbyUsers = await User.find({
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: currentUser.location.coordinates,
+        },
+        $maxDistance: 500, // 500m
+      },
+    },
+  });
+  const messages = await Message.find({
+    userId: { $in: nearbyUsers.map((u) => u._id) },
+  }).sort({ createdAt: 1 });
+  res.json(messages);
 });
 
 module.exports = router;
-
-
