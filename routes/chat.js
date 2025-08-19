@@ -8,12 +8,14 @@ const Message = require("../models/Message");
 // Store OTPs temporarily (use Redis/DB in production)
 let otpStore = {};
 
-// Nodemailer transporter
+// Nodemailer transporter (Brevo)
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_PASS,
   },
 });
 
@@ -29,8 +31,7 @@ router.post("/send-otp", async (req, res) => {
       return res.json({ success: false, message: "All fields are required" });
     }
 
-    // Username validation: only one word, letters+numbers (no special chars),
-    // cannot start with number, at least 2 chars
+    // Username validation
     const usernameRegex = /^[A-Za-z][A-Za-z0-9_]{1,}$/;
     if (!usernameRegex.test(username)) {
       return res.json({
@@ -40,9 +41,8 @@ router.post("/send-otp", async (req, res) => {
       });
     }
 
-    // Email validation (strong)
-    const emailRegex =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       return res.json({
         success: false,
@@ -50,7 +50,7 @@ router.post("/send-otp", async (req, res) => {
       });
     }
 
-    // Password validation: at least 8 chars, includes letter, number, special char
+    // Password validation
     const passwordRegex =
       /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -83,9 +83,9 @@ router.post("/send-otp", async (req, res) => {
       expires: Date.now() + 5 * 60 * 1000, // 5 mins
     };
 
-    // Send OTP via Gmail
+    // Send OTP via Brevo SMTP
     await transporter.sendMail({
-      from: `"Location Chat" <${process.env.EMAIL_USER}>`,
+      from: `"Location Chat App" <${process.env.BREVO_SENDER}>`, // ✅ Verified sender
       to: email,
       subject: "Verify your Email - OTP Code",
       html: `<p>Your OTP is: <b>${otp}</b></p>`,
@@ -96,7 +96,7 @@ router.post("/send-otp", async (req, res) => {
       message: "OTP sent to your email. Please verify.",
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error sending OTP:", err);
     return res.json({ success: false, message: "Error sending OTP" });
   }
 });
@@ -130,7 +130,7 @@ router.post("/verify-otp", async (req, res) => {
 
     return res.json({ success: true, message: "Signup successful!" });
   } catch (err) {
-    console.error(err);
+    console.error("Error verifying OTP:", err);
     return res.json({ success: false, message: "Error verifying OTP" });
   }
 });
@@ -159,7 +159,7 @@ router.post("/login", async (req, res) => {
 
     return res.json({ success: true, message: "Login successful" });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     return res.json({ success: false, message: "Login error, try again" });
   }
 });
