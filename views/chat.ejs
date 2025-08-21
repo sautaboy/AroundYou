@@ -8,20 +8,48 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
       :root {
-        --primary-color: #4361ee;
-        --primary-dark: #3a56d4;
-        --text-primary: #232946;
-        --text-secondary: #5f6d7e;
-        --bg-primary: rgba(255, 255, 255, 0.85);
-        --bg-secondary: #f4f6fb;
-        --border-color: #e0e3e7;
-        --success-color: #28a745;
-        --error-color: #dc3545;
-        --warning-color: #ffc107;
-        --glass-blur: blur(12px);
-        --shadow: 0 8px 32px rgba(67, 97, 238, 0.1);
+        --primary: #6c63ff;
+        --primary-dark: #564fd8;
+        --secondary: #ff6b6b;
+        --accent: #4ecdc4;
+        --text-primary: #2d3436;
+        --text-secondary: #636e72;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        --card-bg: rgba(255, 255, 255, 0.92);
+        --border: rgba(178, 190, 195, 0.5);
+        --radius: 16px;
+        --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        --success: #00b894;
+        --error: #ff7675;
+        --warning: #fdcb6e;
+        --glass-bg: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.18);
+      }
+
+      [data-theme="dark"] {
+        --primary: #7986ff;
+        --primary-dark: #5c6bc0;
+        --secondary: #ff8a80;
+        --accent: #80deea;
+        --text-primary: #f5f6fa;
+        --text-secondary: #dcdde1;
+        --bg-primary: #1e272e;
+        --bg-secondary: #2f3640;
+        --bg-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        --card-bg: rgba(39, 60, 117, 0.25);
+        --border: rgba(255, 255, 255, 0.1);
+        --shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        --glass-bg: rgba(0, 0, 0, 0.2);
+        --glass-border: rgba(255, 255, 255, 0.1);
       }
 
       * {
@@ -32,10 +60,45 @@
 
       body {
         font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-        background: linear-gradient(135deg, #e0e7ff 0%, #f4f6fb 100%);
+        background: var(--bg-gradient);
         color: var(--text-primary);
         min-height: 100vh;
         -webkit-font-smoothing: antialiased;
+        transition: background 1.5s ease, color 0.5s ease;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      .theme-toggle {
+        top: 20px;
+        right: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 100;
+        color: var(--text-primary);
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+      }
+
+      .theme-toggle:hover {
+        transform: rotate(30deg);
       }
 
       .container {
@@ -43,42 +106,38 @@
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        padding: 20px;
+        padding: 0;
       }
 
       .chat-app {
         width: 100%;
         max-width: 800px;
-        background: var(--bg-primary);
-        border-radius: 18px;
+        background: var(--card-bg);
+        border-radius: var(--radius);
         box-shadow: var(--shadow);
         overflow: hidden;
         display: flex;
         flex-direction: column;
         height: 90vh;
-        backdrop-filter: var(--glass-blur);
-        border: 1.5px solid rgba(67, 97, 238, 0.08);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
         transition: box-shadow 0.2s;
+        position: relative;
+        z-index: 2;
       }
 
       .chat-header {
-        padding: 24px 28px;
+        padding: 15px 28px;
         background: linear-gradient(
           90deg,
-          var(--primary-color) 60%,
-          #6c63ff 100%
+          var(--primary) 60%,
+          var(--secondary) 100%
         );
         color: white;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 12px rgba(67, 97, 238, 0.08);
-      }
-
-      .chat-header h2 {
-        font-weight: 700;
-        font-size: 1.35rem;
-        letter-spacing: 1px;
+        box-shadow: 0 2px 12px rgba(108, 99, 255, 0.2);
       }
 
       .user-info {
@@ -88,24 +147,28 @@
       }
 
       .user-avatar {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #a5b4fc 0%, #4361ee 100%);
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--secondary) 100%
+        );
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
         color: #fff;
         font-size: 1.2rem;
-        box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
+        box-shadow: 0 2px 8px rgba(108, 99, 255, 0.2);
         border: 2px solid #fff;
       }
 
       .chat-status {
         padding: 14px 24px;
-        background: rgba(244, 246, 251, 0.85);
-        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
         font-size: 0.97rem;
         display: flex;
         justify-content: space-between;
@@ -122,8 +185,8 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background-color: var(--success-color);
-        box-shadow: 0 0 6px 2px rgba(40, 167, 69, 0.15);
+        background-color: var(--success);
+        box-shadow: 0 0 6px 2px rgba(0, 184, 148, 0.2);
       }
 
       .chat-messages {
@@ -144,13 +207,13 @@
         border-radius: 16px;
         position: relative;
         word-wrap: break-word;
-        box-shadow: 0 2px 8px rgba(67, 97, 238, 0.07);
+        box-shadow: 0 2px 8px rgba(108, 99, 255, 0.1);
         transition: background 0.2s;
         animation: fadeIn 0.4s;
       }
 
       .received {
-        background: rgba(244, 246, 251, 0.95);
+        background: var(--bg-secondary);
         border-top-left-radius: 6px;
         margin-right: auto;
         color: var(--text-primary);
@@ -159,8 +222,8 @@
       .sent {
         background: linear-gradient(
           135deg,
-          var(--primary-color) 70%,
-          #6c63ff 100%
+          var(--primary) 70%,
+          var(--secondary) 100%
         );
         color: white;
         border-top-right-radius: 6px;
@@ -188,9 +251,9 @@
 
       .chat-input-area {
         padding: 18px 24px;
-        border-top: 1px solid var(--border-color);
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: 0 -2px 8px rgba(67, 97, 238, 0.04);
+        border-top: 1px solid var(--border);
+        background: var(--card-bg);
+        box-shadow: 0 -2px 8px rgba(108, 99, 255, 0.1);
       }
 
       .chat-form {
@@ -201,59 +264,87 @@
       .message-input {
         flex: 1;
         padding: 13px 18px;
-        border: 1.5px solid var(--border-color);
-        border-radius: 10px;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
         font-size: 1rem;
         outline: none;
-        background: rgba(244, 246, 251, 0.7);
-        transition: border-color 0.2s, background 0.2s;
+        background: var(--bg-secondary);
+        transition: var(--transition);
+        color: var(--text-primary);
       }
 
       .message-input:focus {
-        border-color: var(--primary-color);
-        background: #fff;
-        box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.13);
+        border-color: var(--primary);
+        background: var(--bg-primary);
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        transform: translateY(-2px);
       }
 
       .send-button {
         padding: 13px 28px;
         background: linear-gradient(
           90deg,
-          var(--primary-color) 60%,
-          #6c63ff 100%
+          var(--primary) 60%,
+          var(--secondary) 100%
         );
         color: white;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.2s, box-shadow 0.2s;
-        box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
+        transition: var(--transition);
+        box-shadow: 0 4px 14px rgba(108, 99, 255, 0.3);
+        position: relative;
+        overflow: hidden;
       }
 
-      .send-button:hover,
-      .send-button:focus {
-        background: var(--primary-dark);
+      .send-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .send-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(108, 99, 255, 0.4);
+      }
+
+      .send-button:hover::before {
+        left: 100%;
+      }
+
+      .send-button:active {
+        transform: scale(0.98);
       }
 
       .send-button:disabled {
-        background: var(--border-color);
+        background: var(--border);
         cursor: not-allowed;
       }
 
       .chat-closed {
         padding: 24px;
         text-align: center;
-        background: rgba(255, 248, 230, 0.95);
+        background: rgba(253, 203, 110, 0.15);
         border-radius: 10px;
         margin: 24px;
-        border: 1.5px solid var(--warning-color);
-        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.07);
+        border: 1.5px solid var(--warning);
+        box-shadow: 0 2px 8px rgba(253, 203, 110, 0.1);
       }
 
       .chat-closed h3 {
-        color: var(--warning-color);
+        color: var(--warning);
         margin-bottom: 12px;
         font-weight: 600;
       }
@@ -268,21 +359,21 @@
         align-items: center;
         gap: 6px;
         padding: 9px 18px;
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--bg-secondary);
         color: var(--text-secondary);
-        border: 1.5px solid var(--border-color);
+        border: 1.5px solid var(--border);
         border-radius: 8px;
         font-size: 0.97rem;
         text-decoration: none;
-        transition: all 0.2s;
+        transition: var(--transition);
         font-weight: 500;
-        box-shadow: 0 1px 4px rgba(67, 97, 238, 0.06);
+        box-shadow: 0 1px 4px rgba(108, 99, 255, 0.1);
       }
 
       .logout-btn:hover {
-        background: var(--error-color);
+        background: var(--error);
         color: #fff;
-        border-color: var(--error-color);
+        border-color: var(--error);
       }
 
       .timestamp {
@@ -319,8 +410,8 @@
           font-size: 1.05rem;
         }
         .user-avatar {
-          width: 32px;
-          height: 32px;
+          width: 40px;
+          height: 40px;
           font-size: 1rem;
         }
         .chat-closed {
@@ -338,18 +429,33 @@
           transform: translateY(0);
         }
       }
+      @keyframes rotate {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="chat-app">
         <div class="chat-header">
-          <h2>Someone is Around You 👀</h2>
+          <div class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon"></i>
+          </div>
+          <div class="user-info">
+            <div class="status-indicator">
+              <p class="countdown" id="countdown"></p>
+            </div>
+          </div>
+
           <div class="user-info">
             <div class="user-avatar">
               <%= currentUser.username.charAt(0).toUpperCase() %>
             </div>
-            <span><%= currentUser.username %></span>
           </div>
         </div>
 
@@ -360,6 +466,8 @@
             <span>Chat is active</span>
             <% } else { %>
             <span>Chat is closed</span>
+            <p class="countdown" id="countdown">Loading countdown...</p>
+
             <% } %>
           </div>
           <a href="/logout" class="logout-btn">
@@ -380,21 +488,6 @@
             Logout
           </a>
         </div>
-
-        <% if (!chatOpen) { %>
-        <div class="chat-closed">
-          <h3>Chat is currently closed</h3>
-          <p>The chat is available daily during specific hours.</p>
-          <p class="countdown" id="countdown">Loading countdown...</p>
-        </div>
-        <% } else { %>
-        <div class="chat-open">
-          <h3>Chat is OPEN ✅</h3>
-          <p class="countdown" id="countdown">Will close in...</p>
-        </div>
-        <% } %>
-
-        
 
         <div class="chat-messages" id="messages">
           <!-- Messages will appear here -->
@@ -420,100 +513,195 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-              const socket = io();
-              const messagesDiv = document.getElementById('messages');
-              const form = document.getElementById('messageForm');
-              const input = document.getElementById('messageInput');
-              let userLocation = null;
+      // Theme toggle functionality
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = themeToggle.querySelector('i');
 
-              // Format timestamp
-              function formatTime(date) {
-                  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-              }
+      // Initialize theme based on time
+      function initTheme() {
+        const hour = new Date().getHours();
+        const isDayTime = hour > 6 && hour < 18;
 
-              // Update countdown timer
-              function updateCountdown() {
-                  const countdownEl = document.getElementById('countdown');
-                  if (!countdownEl) return;
+        if (!isDayTime) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          themeIcon.classList.remove("fa-moon");
+          themeIcon.classList.add("fa-sun");
+        }
 
-                  const now = new Date();
-                  let nextOpen = new Date();
-                  nextOpen.setHours(9, 0, 0, 0);
+        // Update background gradient based on time of day
+        updateBackgroundGradient(hour);
+      }
 
-                  // If it's already past 9 AM today, set for tomorrow
-                  if (now.getHours() >= 9) {
-                      nextOpen.setDate(now.getDate() + 1);
-                  }
+      // Update background gradient based on time
+      function updateBackgroundGradient(hour) {
+        const root = document.documentElement;
+        let gradient;
 
-                  const diff = nextOpen - now;
-                  const hrs = Math.floor(diff / 1000 / 60 / 60);
-                  const mins = Math.floor((diff / 1000 / 60) % 60);
+        if (hour >= 5 && hour < 8) {
+          // Dawn
+          gradient = "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)";
+        } else if (hour >= 8 && hour < 16) {
+          // Day
+          gradient = "linear-gradient(135deg, #c3cfe2 0%, #f5f7fa 100%)";
+        } else if (hour >= 16 && hour < 19) {
+          // Dusk
+          gradient = "linear-gradient(135deg, #fa709a 0%, #fee140 100%)";
+        } else {
+          // Night
+          gradient = "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)";
+        }
 
-                  countdownEl.textContent = `Opens in ${hrs} hours ${mins} minutes`;
-              }
+        root.style.setProperty("--bg-gradient", gradient);
+      }
 
-              if (!<%= chatOpen %>) {
-                  updateCountdown();
-                  setInterval(updateCountdown, 60000); // Update every minute
-              }
+      // Theme toggle event
+      themeToggle.addEventListener("click", () => {
+        const currentTheme = document.documentElement.getAttribute("data-theme");
 
-              // Get user location
-              function getLocation() {
-                  return new Promise((resolve, reject) => {
-                      if (navigator.geolocation) {
-                          navigator.geolocation.getCurrentPosition(
-                              position => resolve({
-                                  lat: position.coords.latitude,
-                                  lng: position.coords.longitude
-                              }),
-                              error => {
-                                  console.error('Geolocation error:', error);
-                                  // Show a more professional error message
-                                  const errorMessage = document.createElement('div');
-                                  errorMessage.className = 'message received';
-                                  errorMessage.innerHTML = `
-                                      <div class="message-info">
-                                          <span>System</span>
-                                          <span class="timestamp">${formatTime(new Date())}</span>
-                                      </div>
-                                      <div class="message-content">
-                                          Please enable location services to participate in the chat.
-                                      </div>
-                                  `;
-                                  messagesDiv.appendChild(errorMessage);
-                                  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                                  reject(error);
-                              },
-                              { timeout: 10000 }
-                          );
-                      } else {
-                          reject(new Error('Geolocation is not supported by this browser.'));
-                      }
-                  });
-              }
+        if (currentTheme === "dark") {
+          document.documentElement.removeAttribute("data-theme");
+          themeIcon.classList.remove("fa-sun");
+          themeIcon.classList.add("fa-moon");
+        } else {
+          document.documentElement.setAttribute("data-theme", "dark");
+          themeIcon.classList.remove("fa-moon");
+          themeIcon.classList.add("fa-sun");
+        }
+      });
 
-              // Initialize chat
-              async function initChat() {
-                  try {
-                      userLocation = await getLocation();
-                      await fetch('/update-location', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                              latitude: userLocation.lat,
-                              longitude: userLocation.lng
-                          })
-                      });
-                      socket.emit('joinNearby');
-                  } catch (error) {
-                      console.error('Location error:', error);
-                  }
-              }
+      // Chat functionality
+      const socket = io();
+      const messagesDiv = document.getElementById('messages');
+      const form = document.getElementById('messageForm');
+      const input = document.getElementById('messageInput');
+      let userLocation = null;
 
+      // Format timestamp
+      function formatTime(date) {
+        return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
 
+      // Update countdown timer
+      function updateCountdown() {
+        const countdownEl = document.getElementById('countdown');
+        if (!countdownEl) return;
 
-            //   formating the time
-              function formatTime(date) {
+        const now = new Date();
+        let nextOpen = new Date();
+        nextOpen.setHours(9, 0, 0, 0);
+
+        // If it's already past 9 AM today, set for tomorrow
+        if (now.getHours() >= 9) {
+          nextOpen.setDate(now.getDate() + 1);
+        }
+
+        const diff = nextOpen - now;
+        const hrs = Math.floor(diff / 1000 / 60 / 60);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+
+        countdownEl.textContent = `Opens in ${hrs} hours ${mins} minutes`;
+      }
+
+      if (!<%= chatOpen %>) {
+        updateCountdown();
+        setInterval(updateCountdown, 60000); // Update every minute
+      }
+
+      // Get user location
+      function getLocation() {
+        return new Promise((resolve, reject) => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              position => resolve({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              }),
+              error => {
+                console.error('Geolocation error:', error);
+                // Show a more professional error message
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'message received';
+                errorMessage.innerHTML = `
+                  <div class="message-info">
+                    <span>System</span>
+                    <span class="timestamp">${formatTime(new Date())}</span>
+                  </div>
+                  <div class="message-content">
+                    Please enable location services to participate in the chat.
+                  </div>
+                `;
+                messagesDiv.appendChild(errorMessage);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                reject(error);
+              },
+              { timeout: 10000 }
+            );
+          } else {
+            reject(new Error('Geolocation is not supported by this browser.'));
+          }
+        });
+      }
+
+      // Fetch message history from server
+      async function fetchMessageHistory() {
+        try {
+          const response = await fetch('/chat/message/all');
+          if (response.ok) {
+            const messages = await response.json();
+            // Display the messages
+            displayMessages(messages);
+          } else {
+            console.error('Failed to fetch message history');
+          }
+        } catch (error) {
+          console.error('Error fetching message history:', error);
+        }
+      }
+
+      // Display messages in the chat
+      function displayMessages(messages) {
+        messagesDiv.innerHTML = '';
+        messages.forEach(msg => {
+          const messageClass = msg.username === '<%= currentUser.username %>' ? 'sent' : 'received';
+          const messageElement = document.createElement('div');
+          messageElement.className = `message ${messageClass}`;
+          messageElement.innerHTML = `
+            <div class="message-info">
+              <span>${msg.username}</span>
+              <span class="timestamp">${formatTime(msg.createdAt)}</span>
+            </div>
+            <div class="message-content">${msg.msg}</div>
+          `;
+          messagesDiv.appendChild(messageElement);
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      // Initialize chat
+      async function initChat() {
+        try {
+          userLocation = await getLocation();
+          await fetch('/update-location', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              latitude: userLocation.lat,
+              longitude: userLocation.lng
+            })
+          });
+
+          // Only fetch messages if chat is open
+          if (<%= chatOpen %>) {
+            socket.emit('joinNearby');
+            await fetchMessageHistory(); // Fetch message history
+          }
+        } catch (error) {
+          console.error('Location error:', error);
+        }
+      }
+
+      // Format the time for display
+      function formatTime(date) {
         const now = new Date();
         const past = new Date(date);
         const diffMs = now - past;
@@ -528,102 +716,97 @@
         return "just now";
       }
 
+      // Receive past messages
+      socket.on('pastMessages', messages => {
+        displayMessages(messages);
+      });
 
-              // Receive past messages
-              socket.on('pastMessages', messages => {
-                  messagesDiv.innerHTML = '';
-                  messages.forEach(msg => {
-                      const messageClass = msg.username === '<%= currentUser.username %>' ? 'sent' : 'received';
-                      const messageElement = document.createElement('div');
-                      messageElement.className = `message ${messageClass}`;
-                      messageElement.innerHTML = `
-                          <div class="message-info">
-                              <span>${msg.username}</span>
-                               <span class="timestamp">${formatTime(msg.createdAt)}</span>
-                          </div>
-                          <div class="message-content">${msg.msg}</div>
-                      `;
-                      messagesDiv.appendChild(messageElement);
-                  });
-                  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      // Receive new messages
+      socket.on('message', data => {
+        const messageClass = data.user === '<%= currentUser.username %>' ? 'sent' : 'received';
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${messageClass}`;
+        messageElement.innerHTML = `
+          <div class="message-info">
+            <span>${data.user}</span>
+            <span class="timestamp">${formatTime(data.timestamp)}</span>
+          </div>
+          <div class="message-content">${data.msg}</div>
+        `;
+        messagesDiv.appendChild(messageElement);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+
+      // Send message
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!input.value.trim()) return;
+
+          if (!userLocation) {
+            try {
+              userLocation = await getLocation();
+              await fetch('/update-location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  latitude: userLocation.lat,
+                  longitude: userLocation.lng
+                })
               });
-
-              // Receive new messages
-              socket.on('message', data => {
-                  const messageClass = data.user === '<%= currentUser.username %>' ? 'sent' : 'received';
-                  const messageElement = document.createElement('div');
-                  messageElement.className = `message ${messageClass}`;
-                  messageElement.innerHTML = `
-                      <div class="message-info">
-                          <span>${data.user}</span>
-                          <span class="timestamp">${formatTime(data.timestamp)}</span>
-                      </div>
-                      <div class="message-content">${data.msg}</div>
-                  `;
-                  messagesDiv.appendChild(messageElement);
-                  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-              });
-
-              // Send message
-              if (form) {
-                  form.addEventListener('submit', async (e) => {
-                      e.preventDefault();
-                      if (!input.value.trim()) return;
-
-                      if (!userLocation) {
-                          try {
-                              userLocation = await getLocation();
-                              await fetch('/update-location', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                      latitude: userLocation.lat,
-                                      longitude: userLocation.lng
-                                  })
-                              });
-                          } catch (error) {
-                              console.error('Failed to get location:', error);
-                              return;
-                          }
-                      }
-
-                      socket.emit('message', input.value.trim(), userLocation);
-                      input.value = '';
-                      input.focus();
-                  });
-              }
-
-              // Initialize the chat when the page loads
-              document.addEventListener('DOMContentLoaded', initChat);
-    </script>
-
-
-
-<script>
-          const nextChatTime = <%= nextChatTime %>; // timestamp from server
-          const type = "<%= nextChatType %>"; // "open" or "close"
-
-          function updateCountdown() {
-            const now = Date.now();
-            const diff = nextChatTime - now;
-
-            if (diff <= 0) {
-              document.getElementById("countdown").textContent = "Refreshing...";
-              location.reload(); // reload page when event happens
+            } catch (error) {
+              console.error('Failed to get location:', error);
               return;
             }
-
-            const hrs = Math.floor(diff / 1000 / 60 / 60);
-            const mins = Math.floor((diff / 1000 / 60) % 60);
-            const secs = Math.floor((diff / 1000) % 60);
-
-            document.getElementById("countdown").textContent =
-              (type === "open" ? "Opens in " : "Closes in ") +
-              `${hrs}h ${mins}m ${secs}s`;
           }
 
-          setInterval(updateCountdown, 1000);
-          updateCountdown();
-        </script>
+          socket.emit('message', input.value.trim(), userLocation);
+          input.value = '';
+          input.focus();
+        });
+      }
+
+      // Initialize the chat when the page loads
+      document.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+
+        // Only initialize chat if it's open
+        if (<%= chatOpen %>) {
+          initChat();
+        }
+
+        // Update background gradient every hour
+        setInterval(() => {
+          const hour = new Date().getHours();
+          updateBackgroundGradient(hour);
+        }, 3600000); // Every hour
+      });
+
+      // Countdown for next chat event
+      const nextChatTime = <%= nextChatTime %>; // timestamp from server
+      const type = "<%= nextChatType %>"; // "open" or "close"
+
+      function updateCountdown() {
+        const now = Date.now();
+        const diff = nextChatTime - now;
+
+        if (diff <= 0) {
+          document.getElementById("countdown").textContent = "Refreshing...";
+          location.reload(); // reload page when event happens
+          return;
+        }
+
+        const hrs = Math.floor(diff / 1000 / 60 / 60);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        document.getElementById("countdown").textContent =
+          (type === "open" ? "Opens in " : "Chat Will Closes in ") +
+          `${hrs}h ${mins}m ${secs}s`;
+      }
+
+      setInterval(updateCountdown, 1000);
+      updateCountdown();
+    </script>
   </body>
 </html>
