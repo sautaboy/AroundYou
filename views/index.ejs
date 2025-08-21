@@ -2,25 +2,61 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Auth | Chat App</title>
+    <title>Auth | Around You</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
       :root {
-        --primary: #4361ee;
-        --primary-dark: #2749d2;
-        --bg-gradient: linear-gradient(135deg, #eef2ff, #f9fafc);
-        --card-bg: #fff;
-        --border: #e5e7eb;
-        --radius: 14px;
-        --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-        --transition: 0.3s ease;
-        --text-dark: #1f2937;
-        --text-light: #6b7280;
+        --primary: #6c63ff;
+        --primary-dark: #564fd8;
+        --secondary: #ff6b6b;
+        --accent: #4ecdc4;
+        --text-primary: #2d3436;
+        --text-secondary: #636e72;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        --card-bg: rgba(255, 255, 255, 0.92);
+        --border: rgba(178, 190, 195, 0.5);
+        --radius: 16px;
+        --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        --success: #00b894;
+        --error: #ff7675;
+        --glass-bg: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.18);
       }
+
+      [data-theme="dark"] {
+        --primary: #7986ff;
+        --primary-dark: #5c6bc0;
+        --secondary: #ff8a80;
+        --accent: #80deea;
+        --text-primary: #f5f6fa;
+        --text-secondary: #dcdde1;
+        --bg-primary: #1e272e;
+        --bg-secondary: #2f3640;
+        --bg-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        --card-bg: rgba(39, 60, 117, 0.25);
+        --border: rgba(255, 255, 255, 0.1);
+        --shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        --glass-bg: rgba(0, 0, 0, 0.2);
+        --glass-border: rgba(255, 255, 255, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
       body {
         font-family: "Inter", sans-serif;
         background: var(--bg-gradient);
@@ -29,124 +65,383 @@
         justify-content: center;
         min-height: 100vh;
         margin: 0;
+        color: var(--text-primary);
+        transition: background 1.5s ease, color 0.5s ease;
+        position: relative;
+        overflow: hidden;
       }
+
+      body::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle at center,
+          transparent 30%,
+          var(--glass-bg) 100%
+        );
+        opacity: 0.5;
+        animation: rotate 30s linear infinite;
+        pointer-events: none;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 100;
+        color: var(--text-primary);
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+      }
+
+      .theme-toggle:hover {
+        transform: rotate(30deg);
+      }
+
       .card {
         background: var(--card-bg);
+        backdrop-filter: blur(12px);
         width: 100%;
-        max-width: 420px;
+        max-width: 450px;
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         overflow: hidden;
-        animation: fadeIn 0.5s ease;
+        animation: fadeIn 0.8s ease;
+        border: 1px solid var(--border);
+        position: relative;
+        z-index: 2;
       }
+
+      .card-header {
+        padding: 24px 26px 0;
+        text-align: center;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+
+      .logo i {
+        font-size: 28px;
+        margin-right: 10px;
+      }
+
+      .logo h1 {
+        font-size: 24px;
+        font-weight: 700;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
       .tabs {
         display: flex;
         border-bottom: 1px solid var(--border);
+        position: relative;
       }
+
       .tab {
         flex: 1;
         text-align: center;
-        padding: 16px;
+        padding: 18px;
         cursor: pointer;
         font-weight: 500;
-        color: var(--text-light);
-        transition: color var(--transition), border var(--transition),
-          background var(--transition);
+        color: var(--text-secondary);
+        transition: var(--transition);
+        position: relative;
+        z-index: 1;
       }
+
       .tab.active {
-        color: var(--primary-dark);
-        border-bottom: 3px solid var(--primary);
-        background: #f9fafc;
+        color: var(--primary);
+        font-weight: 600;
       }
+
+      .tab-slider {
+        position: absolute;
+        bottom: 0;
+        height: 3px;
+        background: linear-gradient(to right, var(--primary), var(--accent));
+        transition: left 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        border-radius: 3px 3px 0 0;
+      }
+
       .content {
-        padding: 28px 26px;
+        padding: 30px 26px;
       }
+
       form {
         display: none;
         flex-direction: column;
-        gap: 14px;
+        gap: 18px;
         animation: slideFade 0.4s ease;
       }
+
       form.active {
         display: flex;
       }
+
+      .input-group {
+        position: relative;
+      }
+
       label {
         font-size: 14px;
         font-weight: 500;
-        color: var(--text-dark);
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        display: block;
       }
+
       input,
       select {
         width: 100%;
-        padding: 12px;
+        padding: 16px 18px;
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 12px;
         font-size: 15px;
-        background: #f9fafb;
-        transition: all var(--transition);
+        background: var(--glass-bg);
+        backdrop-filter: blur(5px);
+        transition: var(--transition);
         outline: none;
+        color: var(--text-primary);
       }
+
+      input::placeholder {
+        color: var(--text-secondary);
+      }
+
       input:focus,
       select:focus {
         border-color: var(--primary);
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        transform: translateY(-2px);
       }
+
+      .input-icon {
+        position: absolute;
+        right: 18px;
+        top: 44px;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+      }
+
       button {
         width: 100%;
-        padding: 13px;
-        background: var(--primary);
+        padding: 16px;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
         border: none;
         color: #fff;
         font-size: 16px;
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
         font-weight: 600;
-        transition: all var(--transition);
-        box-shadow: 0 4px 14px rgba(67, 97, 238, 0.2);
+        transition: var(--transition);
+        box-shadow: 0 4px 14px rgba(108, 99, 255, 0.4);
+        position: relative;
+        overflow: hidden;
       }
+
+      button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
       button:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(67, 97, 238, 0.25);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(108, 99, 255, 0.5);
       }
+
+      button:hover::before {
+        left: 100%;
+      }
+
       button:active {
         transform: scale(0.98);
       }
+
       .message {
-        margin-top: 6px;
+        margin-top: 16px;
         text-align: center;
         font-size: 14px;
         font-weight: 500;
-        color: #dc2626;
         min-height: 20px;
+        padding: 10px;
+        border-radius: 8px;
+        transition: var(--transition);
       }
+
+      .message.success {
+        background-color: rgba(0, 184, 148, 0.1);
+        color: var(--success);
+      }
+
+      .message.error {
+        background-color: rgba(255, 118, 117, 0.1);
+        color: var(--error);
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        margin: 20px 0;
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: var(--border);
+      }
+
+      .divider span {
+        padding: 0 15px;
+      }
+
+      .social-login {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .social-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--glass-bg);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        font-size: 18px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .social-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .footer-text {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      .footer-text a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
       @keyframes fadeIn {
         from {
           opacity: 0;
-          transform: translateY(20px);
+          transform: translateY(30px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
         }
       }
+
       @keyframes slideFade {
         from {
           opacity: 0;
-          transform: translateY(10px);
+          transform: translateY(15px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
+        }
+      }
+
+      @keyframes rotate {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes colorChange {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 480px) {
+        .card {
+          width: 90%;
+          max-width: none;
+        }
+
+        .content {
+          padding: 20px;
         }
       }
     </style>
   </head>
   <body>
+    <div class="theme-toggle" id="themeToggle">
+      <i class="fas fa-moon"></i>
+    </div>
+
     <div class="card">
+      <div class="card-header">
+        <div class="logo">
+          <i class="fas fa-comment-dots"></i>
+          <h1>Around You </h1>
+        </div>
+      </div>
+
       <!-- Tabs -->
       <div class="tabs">
+        <div class="tab-slider" id="tabSlider"></div>
         <div class="tab active" data-target="loginForm">Login</div>
         <div class="tab" data-target="signupForm">Signup</div>
       </div>
@@ -154,82 +449,117 @@
       <div class="content">
         <!-- Login Form -->
         <form id="loginForm" class="active" method="POST" action="/login">
-          <label for="login-email">Email</label>
-          <input
-            type="email"
-            name="email"
-            id="login-email"
-            placeholder="Enter your email"
-            required
-          />
+          <div class="input-group">
+            <label for="login-email">Email</label>
+            <input
+              type="email"
+              name="email"
+              id="login-email"
+              placeholder="Enter your email"
+              required
+            />
+            <i class="fas fa-envelope input-icon"></i>
+          </div>
 
-          <label for="login-password">Password</label>
-          <input
-            type="password"
-            name="password"
-            id="login-password"
-            placeholder="Enter password"
-            required
-          />
+          <div class="input-group">
+            <label for="login-password">Password</label>
+            <input
+              type="password"
+              name="password"
+              id="login-password"
+              placeholder="Enter password"
+              required
+            />
+            <i class="fas fa-lock input-icon"></i>
+          </div>
 
           <button type="submit">Login</button>
+
+          
+
+          <div class="footer-text">
+            Forgot your password? <a href="#">Reset it here</a>
+          </div>
         </form>
 
         <!-- Signup Form -->
         <form id="signupForm" autocomplete="off">
-          <label for="signup-username">Username</label>
-          <input
-            type="text"
-            name="username"
-            id="signup-username"
-            placeholder="Choose username"
-            required
-          />
+          <div class="input-group">
+            <label for="signup-username">Username</label>
+            <input
+              type="text"
+              name="username"
+              id="signup-username"
+              placeholder="Choose username"
+              required
+            />
+            <i class="fas fa-user input-icon"></i>
+          </div>
 
-          <label for="signup-email">Email</label>
-          <input
-            type="email"
-            name="email"
-            id="signup-email"
-            placeholder="Enter your email"
-            required
-          />
+          <div class="input-group">
+            <label for="signup-email">Email</label>
+            <input
+              type="email"
+              name="email"
+              id="signup-email"
+              placeholder="Enter your email"
+              required
+            />
+            <i class="fas fa-envelope input-icon"></i>
+          </div>
 
-          <label for="signup-password">Password</label>
-          <input
-            type="password"
-            name="password"
-            id="signup-password"
-            placeholder="Min. 8 characters"
-            required
-            minlength="8"
-          />
+          <div class="input-group">
+            <label for="signup-password">Password</label>
+            <input
+              type="password"
+              name="password"
+              id="signup-password"
+              placeholder="Min. 8 characters"
+              required
+              minlength="8"
+            />
+            <i class="fas fa-lock input-icon"></i>
+          </div>
 
-          <label for="signup-gender">Gender</label>
-          <select name="gender" id="signup-gender" required>
-            <option value="">Select gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </select>
+          <div class="input-group">
+            <label for="signup-gender">Gender</label>
+            <select name="gender" id="signup-gender" required>
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+            <i class="fas fa-chevron-down input-icon"></i>
+          </div>
 
           <button type="submit">Send OTP</button>
+
+          <div class="footer-text">
+            By signing up, you agree to our <a href="#">Terms & Privacy</a>
+          </div>
         </form>
 
         <!-- OTP Verification -->
         <form id="otpForm">
-          <label for="otpEmail">Email</label>
-          <input type="email" id="otpEmail" name="email" readonly />
+          <div class="input-group">
+            <label for="otpEmail">Email</label>
+            <input type="email" id="otpEmail" name="email" readonly />
+            <i class="fas fa-envelope input-icon"></i>
+          </div>
 
-          <label for="otpInput">OTP</label>
-          <input
-            type="text"
-            name="otp"
-            id="otpInput"
-            placeholder="Enter 6-digit OTP"
-            required
-            maxlength="6"
-            pattern="[0-9]{6}"
-          />
+          <div class="input-group">
+            <label for="otpInput">OTP</label>
+            <input
+              type="text"
+              name="otp"
+              id="otpInput"
+              placeholder="Enter 6-digit OTP"
+              required
+              maxlength="6"
+              pattern="[0-9]{6}"
+            />
+            <i class="fas fa-key input-icon"></i>
+          </div>
 
           <button type="submit">Verify OTP</button>
         </form>
@@ -239,6 +569,7 @@
     </div>
 
     <script>
+      // DOM Elements
       const tabs = document.querySelectorAll(".tab");
       const forms = document.querySelectorAll("form");
       const signupForm = document.getElementById("signupForm");
@@ -246,6 +577,57 @@
       const loginForm = document.getElementById("loginForm");
       const msgBox = document.getElementById("msg");
       const otpEmail = document.getElementById("otpEmail");
+      const tabSlider = document.getElementById("tabSlider");
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = themeToggle.querySelector("i");
+
+      // Initialize tab slider position
+      function initTabSlider() {
+        const activeTab = document.querySelector(".tab.active");
+        if (activeTab) {
+          const tabWidth = activeTab.offsetWidth;
+          const tabLeft = activeTab.offsetLeft;
+          tabSlider.style.width = `${tabWidth}px`;
+          tabSlider.style.left = `${tabLeft}px`;
+        }
+      }
+
+      // Initialize theme based on time
+      function initTheme() {
+        const hour = new Date().getHours();
+        const isDayTime = hour > 6 && hour < 18;
+
+        if (!isDayTime) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          themeIcon.classList.remove("fa-moon");
+          themeIcon.classList.add("fa-sun");
+        }
+
+        // Update background gradient based on time of day
+        updateBackgroundGradient(hour);
+      }
+
+      // Update background gradient based on time
+      function updateBackgroundGradient(hour) {
+        const root = document.documentElement;
+        let gradient;
+
+        if (hour >= 5 && hour < 8) {
+          // Dawn
+          gradient = "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)";
+        } else if (hour >= 8 && hour < 16) {
+          // Day
+          gradient = "linear-gradient(135deg, #c3cfe2 0%, #f5f7fa 100%)";
+        } else if (hour >= 16 && hour < 19) {
+          // Dusk
+          gradient = "linear-gradient(135deg, #fa709a 0%, #fee140 100%)";
+        } else {
+          // Night
+          gradient = "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)";
+        }
+
+        root.style.setProperty("--bg-gradient", gradient);
+      }
 
       // Switch Tabs
       tabs.forEach((tab) => {
@@ -253,17 +635,42 @@
           tabs.forEach((t) => t.classList.remove("active"));
           tab.classList.add("active");
 
+          // Move tab slider
+          const tabWidth = tab.offsetWidth;
+          const tabLeft = tab.offsetLeft;
+          tabSlider.style.width = `${tabWidth}px`;
+          tabSlider.style.left = `${tabLeft}px`;
+
           forms.forEach((f) => f.classList.remove("active"));
           document.getElementById(tab.dataset.target).classList.add("active");
 
           msgBox.innerText = "";
+          msgBox.classList.remove("success", "error");
         });
+      });
+
+      // Theme Toggle
+      themeToggle.addEventListener("click", () => {
+        const currentTheme =
+          document.documentElement.getAttribute("data-theme");
+
+        if (currentTheme === "dark") {
+          document.documentElement.removeAttribute("data-theme");
+          themeIcon.classList.remove("fa-sun");
+          themeIcon.classList.add("fa-moon");
+        } else {
+          document.documentElement.setAttribute("data-theme", "dark");
+          themeIcon.classList.remove("fa-moon");
+          themeIcon.classList.add("fa-sun");
+        }
       });
 
       // Step 1: Send OTP (Signup)
       signupForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         msgBox.innerText = "";
+        msgBox.classList.remove("success", "error");
+
         const data = Object.fromEntries(new FormData(signupForm).entries());
 
         const btn = signupForm.querySelector("button");
@@ -277,15 +684,19 @@
             body: JSON.stringify(data),
           });
           const result = await res.json();
-          msgBox.innerText = result.message;
 
+          msgBox.innerText = result.message;
           if (result.success) {
+            msgBox.classList.add("success");
             otpEmail.value = data.email;
             signupForm.classList.remove("active");
             otpForm.classList.add("active");
+          } else {
+            msgBox.classList.add("error");
           }
         } catch (err) {
           msgBox.innerText = "Error sending OTP";
+          msgBox.classList.add("error");
         } finally {
           btn.disabled = false;
           btn.innerText = "Send OTP";
@@ -296,19 +707,38 @@
       otpForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         msgBox.innerText = "";
+        msgBox.classList.remove("success", "error");
+
         const data = Object.fromEntries(new FormData(otpForm).entries());
 
-        const res = await fetch("/verify-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        const result = await res.json();
-        msgBox.innerText = result.message;
+        const btn = otpForm.querySelector("button");
+        btn.disabled = true;
+        btn.innerText = "Verifying...";
 
-        if (result.success) {
-          alert("Signup successful! Please login.");
-          location.reload();
+        try {
+          const res = await fetch("/verify-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          const result = await res.json();
+
+          msgBox.innerText = result.message;
+          if (result.success) {
+            msgBox.classList.add("success");
+            setTimeout(() => {
+              alert("Signup successful! Please login.");
+              location.reload();
+            }, 1500);
+          } else {
+            msgBox.classList.add("error");
+          }
+        } catch (err) {
+          msgBox.innerText = "Verification error";
+          msgBox.classList.add("error");
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "Verify OTP";
         }
       });
 
@@ -316,6 +746,8 @@
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         msgBox.innerText = "";
+        msgBox.classList.remove("success", "error");
+
         const data = Object.fromEntries(new FormData(loginForm).entries());
 
         const btn = loginForm.querySelector("button");
@@ -329,18 +761,39 @@
             body: JSON.stringify(data),
           });
           const result = await res.json();
-          msgBox.innerText = result.message;
 
+          msgBox.innerText = result.message;
           if (result.success) {
-            window.location.href = "/chat";
+            msgBox.classList.add("success");
+            setTimeout(() => {
+              window.location.href = "/chat";
+            }, 1000);
+          } else {
+            msgBox.classList.add("error");
           }
         } catch (err) {
           msgBox.innerText = "Login error";
+          msgBox.classList.add("error");
         } finally {
           btn.disabled = false;
           btn.innerText = "Login";
         }
       });
+
+      // Initialize
+      window.addEventListener("load", () => {
+        initTabSlider();
+        initTheme();
+
+        // Update background gradient every hour
+        setInterval(() => {
+          const hour = new Date().getHours();
+          updateBackgroundGradient(hour);
+        }, 3600000); // Every hour
+      });
+
+      // Handle window resize
+      window.addEventListener("resize", initTabSlider);
     </script>
   </body>
 </html>

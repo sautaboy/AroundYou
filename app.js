@@ -24,6 +24,7 @@ mongoose
   })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
+  
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -43,77 +44,95 @@ io.use((socket, next) => {
 
 // Routes
 app.use("/", indexRoutes);
-
 // Socket.io
-const users = {}; // { socketId: { username, userId } }
+const users = {}; // { socketId: { username, userId, coords } }
 
 io.on("connection", async (socket) => {
   const session = socket.request.session;
   if (!session.userId) return;
 
   const username = session.username;
-  users[socket.id] = { username, userId: session.userId };
+  users[socket.id] = { username, userId: session.userId, coords: null };
 
-  // Join nearby room
-  socket.on("joinNearby", async () => {
+  // Client sends location updates
+  socket.on("updateLocation", async (coords) => {
+    users[socket.id].coords = coords;
+
+    // Find nearby users for this socket
     const currentUser = await User.findById(session.userId);
+    currentUser.location = {
+      type: "Point",
+      coordinates: [coords.lng, coords.lat],
+    };
+    await currentUser.save();
+
     const nearbyUsers = await User.find({
       location: {
         $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: currentUser.location.coordinates,
-          },
-          $maxDistance: 100,
+          $geometry: currentUser.location,
+          $maxDistance: 3000, // 3km
         },
       },
     });
-    const messages = await Message.find({
-      userId: { $in: nearbyUsers.map((u) => u._id) },
-    }).sort({ createdAt: 1 });
-    socket.emit("pastMessages", messages);
+
+    // Tell client who is nearby (for UI updates)
+    socket.emit(
+      "nearbyUpdate",
+      nearbyUsers.map((u) => ({ id: u._id, username: u.username }))
+    );
   });
 
-  // Receive message
-  socket.on("message", async (msg, location) => {
-    if (!msg || !location) return;
-    const currentUser = await User.findById(session.userId);
+  // When user sends a message
+  socket.on("message", async (msg) => {
+    if (!msg) return;
+
+    const sender = await User.findById(session.userId);
+    if (!sender) return;
+
     const nearbyUsers = await User.find({
       location: {
         $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: currentUser.location.coordinates,
-          },
-          $maxDistance: 100,
+          $geometry: sender.location,
+          $maxDistance: 3000, // 3km
         },
       },
     });
+
     if (nearbyUsers.length > 0) {
       const message = await Message.create({
-        userId: currentUser._id,
+        userId: sender._id,
         username,
         msg,
       });
+
+      // Deliver only to sockets belonging to nearby users
       nearbyUsers.forEach((u) => {
         for (const [socketId, info] of Object.entries(users)) {
           if (info.userId.toString() === u._id.toString()) {
-            io.to(socketId).emit("message", { user: username, msg });
+            io.to(socketId).emit("message", {
+              user: username,
+              msg,
+              timestamp: new Date(),
+            });
           }
         }
       });
     }
   });
 
+  // Disconnect
   socket.on("disconnect", () => {
     delete users[socket.id];
   });
 });
 
-// Auto-delete messages at 10 PM every day
-schedule.scheduleJob("0 22 * * *", async () => {
-  await Message.deleteMany({});
-  console.log("Messages cleared at 10 PM");
+// Auto-delete messages at 9 AM, 3 PM, 11 PM
+const cleanupTimes = ["0 9 * * *", "0 15 * * *", "0 23 * * *"];
+cleanupTimes.forEach((rule) => {
+  schedule.scheduleJob(rule, async () => {
+    await Message.deleteMany({});
+    console.log(`[${new Date().toLocaleString()}] Messages cleared`);
+  });
 });
 
 const PORT = process.env.PORT || 3000;

@@ -169,27 +169,111 @@ router.get("/logout", (req, res) => {
 
 /* ================== Chat Utils ================== */
 
+let cleanupInterval = null;
+
+// Define open windows (24h format) → [startHour, endHour]
+const openWindows = [
+  [6, 9], // 6 AM - 9 AM
+  [11, 15], // 11 AM - 3 PM
+  [17, 23], // 5 PM - 11 PM
+];
+
 function isChatOpen() {
   const hour = new Date().getHours();
-  return (hour >= 6 && hour < 24) || (hour >= 0 && hour < 3);
+  return openWindows.some(([start, end]) => hour >= start && hour < end);
 }
 
+// Delete all messages
 async function deleteAllMessages() {
-  await Message.deleteMany({});
+  try {
+    const result = await Message.deleteMany({});
+    console.log(
+      `[${new Date().toLocaleString()}] Deleted ${result.deletedCount} messages`
+    );
+  } catch (err) {
+    console.error("Error deleting messages:", err);
+  }
 }
 
+// Start continuous cleanup when chat is closed
+function startCleanupInterval() {
+  if (!cleanupInterval) {
+    cleanupInterval = setInterval(deleteAllMessages, 60 * 1000); // every 1 min
+    console.log("✅ Cleanup interval started (chat closed).");
+  }
+}
+
+// Stop continuous cleanup when chat is open
+function stopCleanupInterval() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+    console.log("🛑 Cleanup interval stopped (chat open).");
+  }
+}
+
+// Scheduler to switch modes at open/close times
 function scheduleMessageDeletion() {
   const now = new Date();
-  const next3am = new Date(now);
-  next3am.setHours(3, 0, 0, 0);
-  if (now >= next3am) next3am.setDate(next3am.getDate() + 1);
-  const msUntil3am = next3am - now;
+  const nextEvent = getNextChatEvent();
+  const msUntilRun = nextEvent.time - now;
+
+  // Start or stop cleanup depending on chat state
+  if (isChatOpen()) {
+    stopCleanupInterval();
+  } else {
+    startCleanupInterval();
+  }
 
   setTimeout(async () => {
-    await deleteAllMessages();
-    scheduleMessageDeletion();
-  }, msUntil3am);
+    if (nextEvent.type === "open") {
+      stopCleanupInterval();
+    } else {
+      await deleteAllMessages(); // ✅ works now
+      startCleanupInterval();
+    }
+    scheduleMessageDeletion(); // reschedule
+  }, msUntilRun);
+
+  console.log(
+    `⏳ Next chat ${
+      nextEvent.type
+    } scheduled for: ${nextEvent.time.toLocaleString()}`
+  );
 }
+
+// Determine next chat open/close event
+function getNextChatEvent() {
+  const now = new Date();
+  const hour = now.getHours();
+
+  const windows = [
+    [6, 9], // 6-9 AM
+    [11, 15], // 11 AM - 3 PM
+    [17, 23], // 5-11 PM
+  ];
+
+  for (const [start, end] of windows) {
+    if (hour < start) {
+      const next = new Date(now);
+      next.setHours(start, 0, 0, 0);
+      return { type: "open", time: next };
+    }
+    if (hour >= start && hour < end) {
+      const next = new Date(now);
+      next.setHours(end, 0, 0, 0);
+      return { type: "close", time: next };
+    }
+  }
+
+  // past last window → next open tomorrow 6 AM
+  const next = new Date(now);
+  next.setDate(next.getDate() + 1);
+  next.setHours(6, 0, 0, 0);
+  return { type: "open", time: next };
+}
+
+// Start scheduler
 scheduleMessageDeletion();
 
 /* ================== ROUTES ================== */
@@ -205,10 +289,49 @@ router.post("/update-location", async (req, res) => {
   res.sendStatus(200);
 });
 
+function getNextChatEvent() {
+  const now = new Date();
+  const hour = now.getHours();
+
+  // Define chat windows
+  const windows = [
+    [6, 9], // 6-9 AM
+    [11, 15], // 11 AM-3 PM
+    [17, 23], // 5-11 PM
+  ];
+
+  for (const [start, end] of windows) {
+    if (hour < start) {
+      // Next open
+      const next = new Date(now);
+      next.setHours(start, 0, 0, 0);
+      return { type: "open", time: next };
+    }
+    if (hour >= start && hour < end) {
+      // Currently open → next close
+      const next = new Date(now);
+      next.setHours(end, 0, 0, 0);
+      return { type: "close", time: next };
+    }
+  }
+
+  // If past last window, next open is tomorrow 6 AM
+  const next = new Date(now);
+  next.setDate(next.getDate() + 1);
+  next.setHours(6, 0, 0, 0);
+  return { type: "open", time: next };
+}
+
 router.get("/chat", async (req, res) => {
   if (!req.session.userId) return res.redirect("/");
   const currentUser = await User.findById(req.session.userId);
-  res.render("chat", { currentUser, chatOpen: isChatOpen() });
+  const nextEvent = getNextChatEvent();
+  res.render("chat", {
+    currentUser,
+    chatOpen: isChatOpen(),
+    nextChatTime: nextEvent.time.getTime(), // timestamp for frontend
+    nextChatType: nextEvent.type,
+  });
 });
 
 router.get("/chat/message/all", async (req, res) => {
